@@ -27,8 +27,9 @@
           <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple>
           <div><strong>画像を追加</strong><span>クリック選択、またはここにドラッグ＆ドロップ</span></div>
         </label>
-        <p class="upload-note">最大20枚までアップロードできます。推奨：1枚5MB以内、合計30MB以内。対応形式：JPEG / PNG / WebP</p>
+        <p class="upload-note">最大30枚までアップロードできます。推奨：1枚5MB以内、合計30MB以内。対応形式：JPEG / PNG / WebP</p>
         <div id="uploadError" class="upload-error" aria-live="polite"></div>
+        <div id="uploadWarning" class="upload-warning" aria-live="polite"></div>
         <div id="thumbs" class="thumbs"></div>
       </div>
 
@@ -43,7 +44,7 @@
       <div class="settings-grid">
         <section class="settings-card section">
           <p class="section-title">2. レイアウト設定</p>
-          <label class="control"><span>列数</span><input id="columns" type="range" min="2" max="5" value="3"><span class="value" id="columnsVal">3</span></label>
+          <label class="control"><span>列数</span><input id="columns" type="range" min="2" max="8" value="3"><span class="value" id="columnsVal">3</span></label>
           <label class="control"><span>余白</span><input id="gap" type="range" min="0" max="48" value="16"><span class="value" id="gapVal">16px</span></label>
           <label class="control"><span>角丸</span><input id="radius" type="range" min="0" max="40" value="8"><span class="value" id="radiusVal">8px</span></label>
           <label class="control"><span>背景色</span><input id="bgColor" type="color" value="#ffffff"><span class="value">BG</span></label>

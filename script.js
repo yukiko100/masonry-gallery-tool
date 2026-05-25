@@ -1,6 +1,7 @@
 const fileInput = document.getElementById('fileInput');
 const dropzone = document.getElementById('dropzone');
 const uploadError = document.getElementById('uploadError');
+const uploadWarning = document.getElementById('uploadWarning');
 const thumbs = document.getElementById('thumbs');
 const gallery = document.getElementById('gallery');
 const captureArea = document.getElementById('captureArea');
@@ -39,7 +40,8 @@ let previewTimer = null;
 let normalPreviewResizeFrame = null;
 let tiltPreviewResizeFrame = null;
 
-const MAX_UPLOAD_COUNT = 20;
+const MAX_UPLOAD_COUNT = 30;
+const UPLOAD_WARNING_COUNT = 25;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_TOTAL_SIZE = 30 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -59,6 +61,14 @@ function syncRangeFills() {
 }
 function setUploadError(message) { uploadError.textContent = message; }
 function clearUploadError() { uploadError.textContent = ''; }
+function setUploadWarning(message) { uploadWarning.textContent = message; }
+function updateUploadWarning() {
+  if (images.length >= UPLOAD_WARNING_COUNT) {
+    setUploadWarning('枚数が多いと動作が重くなる場合があります。');
+    return;
+  }
+  setUploadWarning('');
+}
 function getTotalUploadSize() {
   return uploadedFiles.reduce((total, file) => total + file.size, 0);
 }
@@ -71,7 +81,7 @@ function validateFiles(files) {
   const nextTotalSize = getTotalUploadSize() + nextFiles.reduce((total, file) => total + file.size, 0);
 
   if (nextTotalCount > MAX_UPLOAD_COUNT) {
-    errorMessages.push('最大20枚までアップロードできます。');
+    errorMessages.push('最大30枚までアップロードできます。');
   }
   if (nextFiles.some(file => !ALLOWED_FILE_TYPES.includes(file.type))) {
     errorMessages.push('JPEG / PNG / WebP形式の画像を選択してください。');
@@ -110,6 +120,7 @@ async function readFiles(files) {
     size: file.size,
     type: file.type
   })));
+  updateUploadWarning();
   renderThumbs();
   renderGallery();
   fileInput.value = '';
@@ -119,6 +130,7 @@ function deleteImage(index) {
   images.splice(index, 1);
   uploadedFiles.splice(index, 1);
   clearUploadError();
+  updateUploadWarning();
   renderThumbs();
   renderGallery();
 }
@@ -477,6 +489,7 @@ function resetAll() {
   fileInput.value = '';
   thumbs.innerHTML = '';
   clearUploadError();
+  updateUploadWarning();
   columns.value = 3;
   gap.value = 16;
   radius.value = 8;
@@ -583,4 +596,5 @@ downloadTilted.addEventListener('click', async () => {
 
 applySettings(false, false);
 syncRangeFills();
+updateUploadWarning();
 refreshNormalPreview();

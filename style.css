@@ -47,6 +47,8 @@ h1 { margin:0 0 4px; font-size:40px; font-weight:400; line-height:1.25; letter-s
 .upload-note { margin:12px 0 0; color:#6b7280; font-size:12px; line-height:1.7; font-weight:400; }
 .upload-error { min-height:20px; margin-top:8px; color:#b91c1c; font-size:12px; line-height:1.7; font-weight:400; white-space:pre-line; }
 .upload-error:empty { display:none; }
+.upload-warning { min-height:20px; margin-top:8px; color:#8a5a00; font-size:12px; line-height:1.7; font-weight:400; white-space:pre-line; }
+.upload-warning:empty { display:none; }
 input[type="file"] { display:none; }
 .thumbs { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:14px; align-content:start; overflow:auto; padding-right:4px; }
 .thumb { position:relative; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; cursor:grab; }
