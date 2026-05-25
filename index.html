@@ -3,344 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Masonry Gallery Exporter</title>
+  <title>Masonry Gallery Maker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-  <style>
-    :root { --primary:#2f5f9f; --bg:#f5f7fb; --panel:#fff; --text:#111827; --muted:#6b7280; --line:#d9dee8; }
-    * { box-sizing:border-box; }
-    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif; color:var(--text); background:var(--bg); }
-    .app { display:grid; grid-template-columns:320px 1fr; min-height:100vh; }
-    aside { padding:24px; background:var(--panel); border-right:1px solid var(--line); overflow-y:auto; }
-    main { padding:32px; overflow:auto; }
-    h1 { margin:0 0 4px; font-size:24px; line-height:1.2; }
-    .subtitle { margin:0 0 24px; color:var(--muted); font-size:13px; }
-    .section { padding:20px 0; border-top:1px solid var(--line); }
-    .section:first-of-type { border-top:0; padding-top:0; }
-    .section-title { margin:0 0 12px; font-weight:700; font-size:14px; }
-    .dropzone { display:grid; place-items:center; min-height:112px; padding:16px; border:1.5px dashed #b8c0cc; border-radius:10px; text-align:center; color:var(--muted); cursor:pointer; background:#fafbfe; transition:.2s; }
-    .dropzone:hover, .dropzone.is-dragover { border-color:var(--primary); background:#eef5ff; }
-    .dropzone strong { display:block; color:var(--text); font-size:13px; margin-bottom:6px; }
-    .dropzone span { font-size:12px; line-height:1.6; }
-    input[type="file"] { display:none; }
-    .thumbs { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:14px; }
-    .thumb { position:relative; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff; cursor:grab; }
-    .thumb:active { cursor:grabbing; }
-    .thumb.sortable-ghost { opacity:.35; }
-    .thumb.sortable-chosen { box-shadow:0 8px 24px rgba(15,23,42,.18); }
-    .thumb img { display:block; width:100%; aspect-ratio:1; object-fit:cover; }
-    .thumb-index { position:absolute; top:6px; left:6px; min-width:22px; height:22px; display:grid; place-items:center; border-radius:999px; background:rgba(17,24,39,.72); color:#fff; font-size:11px; font-weight:700; }
-    .delete-btn { position:absolute; top:6px; right:6px; width:24px; height:24px; border:0; border-radius:999px; background:rgba(239,68,68,.95); color:#fff; font-size:15px; line-height:1; display:grid; place-items:center; padding:0; cursor:pointer; }
-    .thumb-controls { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); }
-    .thumb-controls button { border-radius:0; padding:7px 4px; font-size:12px; background:#f8fafc; color:#1f2937; }
-    .thumb-controls button:disabled { opacity:.35; cursor:not-allowed; }
-    .control { display:grid; grid-template-columns:86px 1fr 54px; gap:10px; align-items:center; margin:12px 0; font-size:13px; }
-    .control input,.control select { width:100%; height:34px; border:1px solid var(--line); border-radius:6px; padding:0 10px; background:#fff; font:inherit; }
-    .control input[type="range"] { padding:0; }
-    .value { text-align:right; color:var(--muted); font-size:12px; }
-    .button-row { display:grid; gap:10px; margin-top:16px; }
-    button { appearance:none; border:0; border-radius:6px; padding:12px 14px; font-weight:700; cursor:pointer; background:var(--primary); color:#fff; }
-    button.secondary { background:#eef2f7; color:#1f2937; }
-    .preview-grid { display:grid; grid-template-columns:minmax(360px,auto) minmax(360px,1fr); gap:24px; align-items:start; }
-    .preview-shell { width:fit-content; max-width:100%; background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px; box-shadow:0 12px 40px rgba(15,23,42,.08); }
-    .preview-title { margin:0 0 16px; font-size:15px; color:var(--muted); font-weight:700; }
-    #captureArea { width:1200px; max-width:100%; padding:32px; background:#fff; transform-origin:center center; }
-    .gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:start; }
-    .column { display:flex; flex-direction:column; gap:16px; }
-    .gallery-item { overflow:hidden; border-radius:8px; background:#e5e7eb; }
-    .gallery-item img { display:block; width:100%; height:auto; border-radius:inherit; }
-    .gallery-item.has-shadow { filter:drop-shadow(0 14px 22px rgba(15,23,42,.24)); }
-    .empty { grid-column:1/-1; display:grid; place-items:center; min-height:420px; border:1px dashed #c6ccd7; border-radius:12px; color:var(--muted); text-align:center; line-height:1.8; background:#fafafa; }
-    .tilt-preview-box { width:100%; min-height:420px; display:grid; place-items:center; overflow:hidden; border:1px dashed #c6ccd7; border-radius:12px; background-color:#fff; background-image:linear-gradient(45deg,#f3f4f6 25%,transparent 25%),linear-gradient(-45deg,#f3f4f6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f3f4f6 75%),linear-gradient(-45deg,transparent 75%,#f3f4f6 75%); background-size:20px 20px; background-position:0 0,0 10px,10px -10px,-10px 0; }
-    #tiltPreviewImage { display:none; max-width:92%; max-height:360px; height:auto; }
-    .tilt-empty { color:var(--muted); text-align:center; line-height:1.8; padding:24px; white-space:pre-line; }
-    .note { margin-top:12px; color:var(--muted); font-size:12px; line-height:1.7; }
-    .checkbox-row { display:flex; align-items:center; gap:8px; font-size:13px; }
-    .checkbox-row input { width:16px; height:16px; }
-    @media (max-width:1100px) { .preview-grid { grid-template-columns:1fr; } }
-    @media (max-width:900px) { .app { grid-template-columns:1fr; } aside { border-right:0; border-bottom:1px solid var(--line); } main { padding:20px; } #captureArea { width:100%; } }
-  </style>
 </head>
 <body>
+  <div id="exportRoot" aria-hidden="true">
+    <div id="captureArea"><div id="gallery" class="gallery"></div></div>
+  </div>
+
   <div class="app">
     <aside>
-      <h1>Masonry Gallery</h1>
+      <h1>Masonry Gallery Maker</h1>
       <p class="subtitle">Upload / Layout / Tilt Export</p>
 
-      <div class="section">
+      <div class="section upload-section">
         <p class="section-title">1. 画像をアップロード</p>
         <label class="dropzone" id="dropzone" for="fileInput">
-          <input id="fileInput" type="file" accept="image/*" multiple>
+          <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple>
           <div><strong>画像を追加</strong><span>クリック選択、またはここにドラッグ＆ドロップ</span></div>
         </label>
+        <p class="upload-note">最大20枚までアップロードできます。推奨：1枚5MB以内、合計30MB以内。対応形式：JPEG / PNG / WebP</p>
+        <div id="uploadError" class="upload-error" aria-live="polite"></div>
         <div id="thumbs" class="thumbs"></div>
       </div>
 
-      <div class="section">
-        <p class="section-title">2. レイアウト設定</p>
-        <label class="control"><span>列数</span><input id="columns" type="range" min="2" max="5" value="3"><span class="value" id="columnsVal">3</span></label>
-        <label class="control"><span>余白</span><input id="gap" type="range" min="0" max="48" value="16"><span class="value" id="gapVal">16px</span></label>
-        <label class="control"><span>角丸</span><input id="radius" type="range" min="0" max="40" value="8"><span class="value" id="radiusVal">8px</span></label>
-        <label class="control"><span>背景色</span><input id="bgColor" type="color" value="#ffffff"><span class="value">BG</span></label>
-        <label class="control"><span>幅</span><input id="exportWidth" type="number" min="600" max="2400" step="100" value="1200"><span class="value">px</span></label>
-        <label class="control"><span>プリセット</span><select id="sizePreset"><option value="">選択</option><option value="1080">1080</option><option value="1200">1200</option><option value="1600">1600</option></select><span class="value">size</span></label>
-      </div>
-
-      <div class="section">
-        <p class="section-title">3. 傾き設定</p>
-        <label class="control"><span>角度</span><input id="angle" type="range" min="-45" max="45" value="-15"><span class="value" id="angleVal">-15°</span></label>
-        <button class="secondary" id="resetAngleBtn" type="button">角度をリセット</button>
-      </div>
-
-      <div class="section">
-        <p class="section-title">4. 影設定</p>
-        <label class="checkbox-row"><input id="shadow" type="checkbox"> 影を付ける</label>
-      </div>
-
-      <div class="section">
-        <p class="section-title">5. 書き出し</p>
-        <label class="control"><span>形式</span><select id="format"><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option></select><span class="value">file</span></label>
-        <label class="control"><span>背景</span><select id="bgMode"><option value="solid">背景あり</option><option value="transparent">透過（PNGのみ）</option></select><span class="value">mode</span></label>
-        <div class="button-row">
-          <button id="downloadNormal" type="button">通常画像をダウンロード</button>
-          <button id="downloadTilted" type="button">傾けた画像をダウンロード</button>
-          <button class="secondary" id="updateTiltPreview" type="button">傾きプレビューを更新</button>
-          <button class="secondary" id="resetAllBtn" type="button">すべてリセット</button>
-        </div>
+      <div class="sidebar-footer footer">
+        <p class="footer-title">Masonry Gallery Maker</p>
+        <p class="footer-credit">© 2026 <a href="https://x.com/web_kotsun" target="_blank" rel="noopener noreferrer">Kotsun</a></p>
+        <p class="footer-note">画像はブラウザ上でローカルに処理されます。<br>アップロードされたファイルは、いかなるサーバーにも保存されません。</p>
       </div>
     </aside>
 
     <main>
+      <div class="settings-grid">
+        <section class="settings-card section">
+          <p class="section-title">2. レイアウト設定</p>
+          <label class="control"><span>列数</span><input id="columns" type="range" min="2" max="5" value="3"><span class="value" id="columnsVal">3</span></label>
+          <label class="control"><span>余白</span><input id="gap" type="range" min="0" max="48" value="16"><span class="value" id="gapVal">16px</span></label>
+          <label class="control"><span>角丸</span><input id="radius" type="range" min="0" max="40" value="8"><span class="value" id="radiusVal">8px</span></label>
+          <label class="control"><span>背景色</span><input id="bgColor" type="color" value="#ffffff"><span class="value">BG</span></label>
+          <label class="control"><span>幅</span><input id="exportWidth" type="number" min="600" max="2400" step="100" value="1200"><span class="value">px</span></label>
+          <label class="control"><span>プリセット</span><select id="sizePreset"><option value="">選択</option><option value="1080">1080</option><option value="1200">1200</option><option value="1600">1600</option></select><span class="value">size</span></label>
+        </section>
+
+        <section class="settings-card section">
+          <p class="section-title">3. 傾き設定</p>
+          <label class="control"><span>角度</span><input id="angle" type="range" min="-45" max="45" value="-15"><span class="value" id="angleVal">-15°</span></label>
+          <button class="btn btn-secondary" id="resetAngleBtn" type="button">角度をリセット</button>
+        </section>
+
+        <section class="settings-card section">
+          <p class="section-title">4. 影設定</p>
+          <label class="checkbox-row"><input id="shadow" type="checkbox"> 影を付ける</label>
+          <label class="control"><span>強さ</span><input id="shadowStrength" type="range" min="0" max="100" value="30"><span class="value" id="shadowStrengthVal">30</span></label>
+        </section>
+
+        <section class="settings-card section">
+          <p class="section-title">5. 書き出し</p>
+          <label class="control"><span>形式</span><select id="format"><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option></select><span class="value">file</span></label>
+          <label class="control"><span>背景</span><select id="bgMode"><option value="solid">背景あり</option><option value="transparent">透過（PNGのみ）</option></select><span class="value">mode</span></label>
+          <div class="button-row">
+            <button class="btn btn-primary" id="downloadNormal" type="button">通常画像をダウンロード</button>
+            <button class="btn btn-primary" id="downloadTilted" type="button">傾けた画像をダウンロード</button>
+            <button class="btn btn-secondary" id="updateTiltPreview" type="button">傾きプレビューを更新</button>
+            <button class="btn btn-danger" id="resetAllBtn" type="button">すべてリセット</button>
+          </div>
+        </section>
+      </div>
+
       <div class="preview-grid">
         <div class="preview-shell">
           <p class="preview-title">通常プレビュー（編集用）</p>
-          <div id="captureArea"><div id="gallery" class="gallery"><div class="empty">画像をアップロードすると<br>Masonryレイアウトで表示されます</div></div></div>
+          <div class="preview-box">
+            <div id="normalEmpty" class="preview-empty">画像をアップロードすると
+Masonryレイアウトで表示されます</div>
+            <div id="normalPreviewStage" class="preview-stage">
+              <div id="normalPreviewContent" class="preview-content"></div>
+            </div>
+          </div>
         </div>
         <div class="preview-shell">
           <p class="preview-title">傾きプレビュー（書き出しイメージ）</p>
-          <div class="tilt-preview-box">
+          <div class="preview-box tilt-preview-box">
             <div id="tiltEmpty" class="tilt-empty">画像をアップロードすると
 傾けた状態のプレビューが表示されます</div>
-            <img id="tiltPreviewImage" alt="傾きプレビュー">
+            <div id="tiltPreviewStage" class="preview-stage tilt-preview-stage">
+              <div id="tiltPreviewContent" class="preview-content tilt-preview-content"></div>
+            </div>
           </div>
         </div>
       </div>
     </main>
   </div>
 
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const dropzone = document.getElementById('dropzone');
-    const thumbs = document.getElementById('thumbs');
-    const gallery = document.getElementById('gallery');
-    const captureArea = document.getElementById('captureArea');
-    const tiltPreviewImage = document.getElementById('tiltPreviewImage');
-    const tiltEmpty = document.getElementById('tiltEmpty');
-    const columns = document.getElementById('columns');
-    const gap = document.getElementById('gap');
-    const radius = document.getElementById('radius');
-    const bgColor = document.getElementById('bgColor');
-    const exportWidth = document.getElementById('exportWidth');
-    const sizePreset = document.getElementById('sizePreset');
-    const angle = document.getElementById('angle');
-    const shadow = document.getElementById('shadow');
-    const format = document.getElementById('format');
-    const bgMode = document.getElementById('bgMode');
-    const columnsVal = document.getElementById('columnsVal');
-    const gapVal = document.getElementById('gapVal');
-    const radiusVal = document.getElementById('radiusVal');
-    const angleVal = document.getElementById('angleVal');
-    const downloadNormal = document.getElementById('downloadNormal');
-    const downloadTilted = document.getElementById('downloadTilted');
-    const resetAngleBtn = document.getElementById('resetAngleBtn');
-    const updateTiltPreview = document.getElementById('updateTiltPreview');
-    const resetAllBtn = document.getElementById('resetAllBtn');
-
-    let images = [];
-    let sortable = null;
-    let previewTimer = null;
-
-    function isTransparentExport() { return format.value === 'image/png' && bgMode.value === 'transparent'; }
-
-    async function readFiles(files) {
-      const imageFiles = Array.from(files || []).filter(file => file.type && file.type.startsWith('image/'));
-      if (!imageFiles.length) return;
-      const addedImages = await Promise.all(imageFiles.map(file => new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.readAsDataURL(file);
-      })));
-      images = images.concat(addedImages);
-      renderThumbs();
-      renderGallery();
-      fileInput.value = '';
-      scheduleTiltPreview();
-    }
-
-    function deleteImage(index) { images.splice(index, 1); renderThumbs(); renderGallery(); scheduleTiltPreview(); }
-    function moveImage(index, direction) {
-      const nextIndex = index + direction;
-      if (nextIndex < 0 || nextIndex >= images.length) return;
-      [images[index], images[nextIndex]] = [images[nextIndex], images[index]];
-      renderThumbs(); renderGallery(); scheduleTiltPreview();
-    }
-
-    function initSortable() {
-      if (sortable) sortable.destroy();
-      if (!window.Sortable) return;
-      sortable = new Sortable(thumbs, {
-        animation:180, ghostClass:'sortable-ghost', chosenClass:'sortable-chosen', filter:'.delete-btn,.thumb-controls button', preventOnFilter:false,
-        onEnd:event => {
-          if (event.oldIndex === event.newIndex) return;
-          const movedItem = images.splice(event.oldIndex, 1)[0];
-          images.splice(event.newIndex, 0, movedItem);
-          renderThumbs(); renderGallery(); scheduleTiltPreview();
-        }
-      });
-    }
-
-    function renderThumbs() {
-      thumbs.innerHTML = '';
-      images.forEach((src, index) => {
-        const thumb = document.createElement('div'); thumb.className = 'thumb';
-        const img = document.createElement('img'); img.src = src;
-        const badge = document.createElement('div'); badge.className = 'thumb-index'; badge.textContent = index + 1;
-        const del = document.createElement('button'); del.type = 'button'; del.className = 'delete-btn'; del.textContent = '×';
-        del.addEventListener('click', e => { e.stopPropagation(); deleteImage(index); });
-        const controls = document.createElement('div'); controls.className = 'thumb-controls';
-        const prevBtn = document.createElement('button'); prevBtn.type = 'button'; prevBtn.textContent = '← 前へ'; prevBtn.disabled = index === 0; prevBtn.addEventListener('click', e => { e.stopPropagation(); moveImage(index, -1); });
-        const nextBtn = document.createElement('button'); nextBtn.type = 'button'; nextBtn.textContent = '次へ →'; nextBtn.disabled = index === images.length - 1; nextBtn.addEventListener('click', e => { e.stopPropagation(); moveImage(index, 1); });
-        controls.append(prevBtn, nextBtn);
-        thumb.append(img, badge, del, controls);
-        thumbs.appendChild(thumb);
-      });
-      initSortable();
-    }
-
-    function renderGallery() {
-      gallery.innerHTML = '';
-      if (!images.length) {
-        gallery.innerHTML = '<div class="empty">画像をアップロードすると<br>Masonryレイアウトで表示されます</div>';
-        resetTiltPreview();
-        return;
-      }
-      const colCount = Number(columns.value);
-      const columnEls = [];
-      for (let i = 0; i < colCount; i++) {
-        const col = document.createElement('div'); col.className = 'column'; gallery.appendChild(col); columnEls.push(col);
-      }
-      images.forEach((src, index) => {
-        const item = document.createElement('div'); item.className = 'gallery-item';
-        if (shadow.checked) item.classList.add('has-shadow');
-        const img = document.createElement('img'); img.src = src;
-        item.appendChild(img); columnEls[index % colCount].appendChild(item);
-      });
-      applySettings(false, false);
-    }
-
-    function applySettings(shouldRerender = false, shouldSchedulePreview = true) {
-      columnsVal.textContent = columns.value;
-      gapVal.textContent = gap.value + 'px';
-      radiusVal.textContent = radius.value + 'px';
-      angleVal.textContent = angle.value + '°';
-      captureArea.style.width = exportWidth.value + 'px';
-      captureArea.style.background = bgColor.value;
-      gallery.style.gridTemplateColumns = 'repeat(' + columns.value + ', 1fr)';
-      gallery.style.gap = gap.value + 'px';
-      document.querySelectorAll('.column').forEach(col => { col.style.gap = gap.value + 'px'; });
-      document.querySelectorAll('.gallery-item').forEach(item => { item.style.borderRadius = radius.value + 'px'; });
-      if (shouldRerender && images.length) renderGallery();
-      if (shouldSchedulePreview && images.length) scheduleTiltPreview();
-    }
-
-    async function captureNormalCanvas(scale = 1) {
-      applySettings(false, false);
-      await waitImagesLoaded(captureArea);
-      const transparent = isTransparentExport();
-      const originalInlineStyle = captureArea.getAttribute('style') || '';
-      captureArea.style.width = exportWidth.value + 'px';
-      captureArea.style.maxWidth = 'none';
-      captureArea.style.background = transparent ? 'transparent' : bgColor.value;
-      const canvas = await html2canvas(captureArea, { backgroundColor: transparent ? null : bgColor.value, scale, useCORS:true, logging:false, windowWidth: Number(exportWidth.value) + 200 });
-      captureArea.setAttribute('style', originalInlineStyle);
-      applySettings(false, false);
-      return canvas;
-    }
-
-    function rotateCanvas(sourceCanvas, degrees) {
-      const rad = degrees * Math.PI / 180, sin = Math.abs(Math.sin(rad)), cos = Math.abs(Math.cos(rad));
-      const w = sourceCanvas.width, h = sourceCanvas.height;
-      const rotated = document.createElement('canvas');
-      rotated.width = Math.ceil(w * cos + h * sin);
-      rotated.height = Math.ceil(w * sin + h * cos);
-      const ctx = rotated.getContext('2d'); ctx.clearRect(0,0,rotated.width,rotated.height);
-      if (!isTransparentExport()) { ctx.fillStyle = bgColor.value; ctx.fillRect(0,0,rotated.width,rotated.height); }
-      ctx.translate(rotated.width/2, rotated.height/2); ctx.rotate(rad); ctx.drawImage(sourceCanvas, -w/2, -h/2);
-      return rotated;
-    }
-
-    async function refreshTiltPreview() {
-      if (!images.length) { resetTiltPreview(); return; }
-      tiltEmpty.textContent = 'プレビュー生成中…';
-      tiltEmpty.style.display = 'block';
-      tiltPreviewImage.style.display = 'none';
-      try {
-        const baseCanvas = await captureNormalCanvas(0.5);
-        const rotatedCanvas = rotateCanvas(baseCanvas, Number(angle.value));
-        const dataUrl = rotatedCanvas.toDataURL('image/png');
-        await new Promise(resolve => { tiltPreviewImage.onload = resolve; tiltPreviewImage.src = dataUrl; });
-        tiltPreviewImage.style.display = 'block';
-        tiltEmpty.style.display = 'none';
-      } catch (error) {
-        tiltEmpty.textContent = 'プレビュー生成に失敗しました。\n画像枚数やサイズを減らして再試行してください。';
-        tiltEmpty.style.display = 'block';
-        tiltPreviewImage.style.display = 'none';
-        console.error(error);
-      }
-    }
-
-    function scheduleTiltPreview() { clearTimeout(previewTimer); previewTimer = setTimeout(refreshTiltPreview, 350); }
-    function resetTiltPreview() {
-      tiltEmpty.textContent = '画像をアップロードすると\n傾けた状態のプレビューが表示されます';
-      tiltEmpty.style.display = 'block'; tiltPreviewImage.removeAttribute('src'); tiltPreviewImage.style.display = 'none';
-    }
-    function resetAll() {
-      clearTimeout(previewTimer);
-      images = []; fileInput.value = ''; thumbs.innerHTML = '';
-      columns.value = 3; gap.value = 16; radius.value = 8; bgColor.value = '#ffffff'; exportWidth.value = 1200; sizePreset.value = ''; angle.value = -15; shadow.checked = false; format.value = 'image/png'; bgMode.value = 'solid';
-      renderGallery(); applySettings(false, false); resetTiltPreview();
-    }
-    function downloadCanvas(canvas, filename, mimeType) {
-      const url = canvas.toDataURL(mimeType, mimeType === 'image/jpeg' ? 0.92 : undefined);
-      const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
-    }
-    function waitImagesLoaded(root) {
-      const imgs = Array.from(root.querySelectorAll('img'));
-      return Promise.all(imgs.map(img => img.complete && img.naturalWidth > 0 ? Promise.resolve() : new Promise(resolve => { img.onload = resolve; img.onerror = resolve; })));
-    }
-
-    fileInput.addEventListener('change', e => readFiles(e.target.files));
-    // label要素の標準動作でファイル選択を開くため、
-    // JavaScriptで fileInput.click() は呼ばない。
-    // 二重発火すると、初回選択が反映されないブラウザがあります。
-    ['dragenter','dragover'].forEach(name => dropzone.addEventListener(name, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.add('is-dragover'); }));
-    ['dragleave','drop'].forEach(name => dropzone.addEventListener(name, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('is-dragover'); }));
-    dropzone.addEventListener('drop', e => readFiles(e.dataTransfer.files));
-    window.addEventListener('dragover', e => e.preventDefault());
-    window.addEventListener('drop', e => e.preventDefault());
-
-    [gap, radius, bgColor, exportWidth, angle, bgMode].forEach(input => { input.addEventListener('input', () => applySettings(false, true)); input.addEventListener('change', () => applySettings(false, true)); });
-    shadow.addEventListener('change', () => { renderGallery(); scheduleTiltPreview(); });
-    format.addEventListener('change', () => { if (format.value === 'image/jpeg') bgMode.value = 'solid'; applySettings(false, true); });
-    columns.addEventListener('input', () => applySettings(true, true));
-    sizePreset.addEventListener('change', () => { if (!sizePreset.value) return; exportWidth.value = sizePreset.value; applySettings(false, true); });
-    resetAngleBtn.addEventListener('click', () => { angle.value = -15; applySettings(false, true); });
-    updateTiltPreview.addEventListener('click', refreshTiltPreview);
-    resetAllBtn.addEventListener('click', resetAll);
-    downloadNormal.addEventListener('click', async () => { if (!images.length) return alert('画像をアップロードしてください。'); const canvas = await captureNormalCanvas(1); const ext = format.value === 'image/png' ? 'png' : 'jpg'; downloadCanvas(canvas, 'masonry-gallery.' + ext, format.value); });
-    downloadTilted.addEventListener('click', async () => { if (!images.length) return alert('画像をアップロードしてください。'); const baseCanvas = await captureNormalCanvas(1); const rotatedCanvas = rotateCanvas(baseCanvas, Number(angle.value)); const ext = format.value === 'image/png' ? 'png' : 'jpg'; downloadCanvas(rotatedCanvas, 'masonry-gallery-tilt-' + angle.value + '.' + ext, format.value); });
-
-    applySettings(false, false);
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
